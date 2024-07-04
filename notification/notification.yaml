@@ -1,0 +1,153 @@
+# Notifications Services API
+#
+#
+# Description: This API includes the handling of notifications.
+#
+# Purpose: This API allows the abillity to send notfications through various methods such as push, email, or phone
+
+# ---------General API Information---------
+openapi: "3.0.0"
+info:
+    version: "1.0.0"
+    title: "Notification Services API"
+    description: Notification Services API
+
+# ---------API Server Information---------
+servers:
+    - url: https://www.tigerchow.com/api
+
+# ---------API Paths Information---------
+paths:
+    /notification-types:
+        # Endpoint to create notification types
+        post:
+            description: Create a new notification type.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - notification_type
+                                - description
+                            properties:
+                                notification_type:
+                                    type: string
+                                    description: The unique identifier for the notification type
+                                description:
+                                    type: string
+                                    description: Description of the notification type
+            # Responses to creating a notification type
+            responses:
+                "201":
+                    description: Notification type created successfully
+                "400":
+                    $ref: "#/components/responses/400Error"
+                "500":
+                    $ref: "#/components/responses/500Error"
+
+    /send-notification:
+        # Endpoint to send notifications to user accounts
+        post:
+            description: Send a notification to a user account.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - account_id
+                                - notification_type
+                                - message_type
+                            properties:
+                                account_id:
+                                    type: string
+                                    description: The unique identifier of the user account
+                                notification_type:
+                                    type: string
+                                    description: The type of notification being sent (e.g., new_account, order_update)
+                                message_type:
+                                    type: string
+                                    description: The type of communication medium (e.g. email, text, push)
+            # Responses to sending a notification
+            responses:
+                "200":
+                    description: Notification sent successfully
+                "400":
+                    $ref: "#/components/responses/400Error"
+                "500":
+                    $ref: "#/components/responses/500Error"
+
+    /notification-history:
+        # Endpoint to retrieve notification history
+        get:
+            description: Retrieve notification history.
+            responses:
+                "200":
+                    description: Notification history retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    type: object
+                                    properties:
+                                        id:
+                                            type: string
+                                            description: The unique identifier of the notification
+                                        notificationType:
+                                            type: string
+                                            description: The type of notification
+                                        notificationMessage:
+                                            type: string
+                                            description: The notification message
+                                        sentTime:
+                                            type: string
+                                            format: date-time
+                                            description: The time the notification was sent
+                "400":
+                    $ref: "#/components/responses/400Error"
+                "500":
+                    $ref: "#/components/responses/500Error"
+
+    /supported-notification-types:
+        # Endpoint to retrieve all supported notification types
+        get:
+            description: Retrieve all supported notification types.
+            responses:
+                "200":
+                    description: Supported notification types retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    type: string
+                                    description: The supported notification type
+                "400":
+                    $ref: "#/components/responses/400Error"
+                "500":
+                    $ref: "#/components/responses/500Error"
+
+components:
+    schemas:
+        notification:
+            description: A notification object containing all necessary information for delivering a notification to a user
+            type: object
+            required:
+                - account_id
+                - notification_type
+                - notification_info
+            properties:
+                account_id:
+                    type: string
+                    description: The unique identifier of the user account for which to send the notification
+                notification_type:
+                    type: string
+                    description: The type of notification (e.g., new_account, order_update)
+                notification_info:
+                    type: object
+                    description: Pertinent information to support the type of notification
+                    additionalProperties: true
