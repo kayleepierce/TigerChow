@@ -1,0 +1,337 @@
+# Account Services API
+#
+#
+# Description: This API includes the header API information, the Server information,
+#              the user account paths, the user account components such as parameters,
+#              responses, and schema's. This API also includes user accounts and their
+#              properties.
+#
+# Purpose: This API allows the various website users to create accounts, login
+#          into https://www.tigerchow.com and search/adjust various settings.
+#          It is also used by the TigerChow admin to manage account information.
+
+# ---------General API Information---------
+openapi: "3.0.0"
+info:
+    version: "1.0.0"
+    title: "Account Services API"
+    description: Account Services API
+
+# ---------API Server Information---------
+servers:
+    - url: https://www.tigerchow.com/api
+
+# ---------API Paths Information---------
+paths:
+    # Users can be customers or employees; personal information is also stored
+    /accounts:
+        # Get all user accounts
+        get:
+            description:
+                Returns a list of user accounts and filter by specific parameters such as
+                PageLimit
+                PageOffset
+            parameters:
+                - $ref: "#/components/parameters/PageLimit"
+                - $ref: "#/components/parameters/PageOffset"
+
+            # Responses to getting the list of all users
+            responses:
+                "200":
+                    description: Retrieved the list of all user accounts successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/account"
+                "400":
+                    description: Did not reach the server successfully
+                    $ref: "#/components/responses/400Error"
+                "500":
+                    $ref: "#/components/responses/500Error"
+
+        # Creates a user account with user entered properties; assigns user with an id
+        post:
+            description: Allows you to add a new account or accounts to the system
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/account"
+
+            # Responses to creating a particular users
+            responses:
+                "200":
+                    description: Successfully added a new user account
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/account"
+                "400":
+                    $ref: "#/components/responses/400Error"
+                "500":
+                    $ref: "#/components/responses/500Error"
+
+    # Login path for every user account to login into the website
+    /account/login:
+        # Gets the particular user account information depending on which user logged in
+        post:
+            description: login a user to the TigerChow Website
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/loginCredentials"
+
+            # Responses to the particular user logging in at the time
+            responses:
+                "200":
+                    description: Login Successful (Give Security Token by Security Services)
+                "400":
+                    $ref: "#/components/responses/400Error"
+                "500":
+                    $ref: "#/components/responses/500Error"
+
+    # User's id path that allows users to fetch or edit a particular user account
+    /account/{id}:
+        parameters:
+            - name: id
+              description: The unique identifier of a user
+              in: path
+              required: true
+              schema:
+                  type: integer
+
+        # Retrieve the information for a user by id
+        get:
+            description: Retrieve a specific user by an id
+
+            # Responses to retrieving a particular user
+            responses:
+                "200":
+                    description: Sucessfully returned The user corresponding to the provided `id`
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/account"
+                "400":
+                    $ref: "#/components/responses/400Error"
+                "500":
+                    $ref: "#/components/responses/500Error"
+
+        # Permanently deletes a user
+        delete:
+            description: Unregister and remove personal information from the website
+            responses:
+                "200":
+                    description: User successfully unregistered and personal information removed
+                "400":
+                    $ref: "#/components/responses/400Error"
+                "500":
+                    $ref: "#/components/responses/500Error"
+
+    /account/guest-login:
+        post:
+            description: Login as a guest to the TigerChow website
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - token
+                            properties:
+                                token:
+                                    type: string
+            responses:
+                "200":
+                    description: Login as guest successful
+                "400":
+                    $ref: "#/components/responses/400Error"
+                "500":
+                    $ref: "#/components/responses/500Error"
+
+    /account/preferences:
+        put:
+            description: Update user preferences or password for a registered user
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/userPreferences"
+            responses:
+                "200":
+                    description: User preferences updated successfully
+                "400":
+                    $ref: "#/components/responses/400Error"
+                "500":
+                    $ref: "#/components/responses/500Error"
+
+    /account/auto-logout:
+        post:
+            description: Set automatic logout after 20 minutes of inactivity for all users
+            responses:
+                "200":
+                    description: Automatic logout configured successfully
+                "400":
+                    $ref: "#/components/responses/400Error"
+                "500":
+                    $ref: "#/components/responses/500Error"
+
+    /account/last-active-time/{id}:
+        get:
+            description: Retrieve the last active time of a particular customer
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: Successfully retrieved last active time
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    lastActiveTime:
+                                        type: string
+                                        format: date-time
+                "400":
+                    $ref: "#/components/responses/400Error"
+                "500":
+                    $ref: "#/components/responses/500Error"
+                    
+# ---------API Components Information---------
+# Contains all reusable parameters, responses, and schemas for the Accounts API
+components:
+    # ---------Parameters---------
+    parameters:
+        # Helps set the limit of user accounts on a single page
+        PageLimit:
+            name: limit
+            in: query
+            description: Limits the number of items on a page
+            schema:
+                type: integer
+
+        # Helps to select which page of user accounts to be displayed
+        PageOffset:
+            name: offset
+            in: query
+            description: Specifies the page number of the user accounts to be displayed
+            schema:
+                type: integer
+
+    # ---------API Responses Information---------
+    responses:
+        # A schema for general 400 error code information
+        400Error:
+            description: Invalid Client Request
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            message:
+                                description: A human readable error message
+                                type: string
+
+        # A schema for general 500 error code information
+        500Error:
+            description: Unexpected Server Error
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            message:
+                                description: A human readable error message
+                                type: string
+
+    # ---------API Schemas Information---------
+    schemas:
+        # Login Credential schema to be re-used throughout the API
+        loginCredentials:
+            description: The requirements to login
+            type: object
+            required:
+                - email
+                - password
+            properties:
+                email:
+                    type: string
+                password:
+                    type: string
+
+        # User Preferences schema to be re-used throughout the API
+        userPreferences:
+            description: represents the preferences that a user may have
+            type: object
+            required:
+                - language
+            properties:
+                language:
+                    type: string
+                preferredFont:
+                    type: string
+                darkModeOn:
+                    type: boolean
+                address:
+                    type: string
+                    description: Preferred delivery address
+                paymentMethod:
+                    type: string
+                    description: Preferred payment method
+                loginCredentials:
+                    $ref: "#/components/schemas/loginCredentials"
+                notificationSettings:
+                    $ref: "#/components/schemas/notificationSettings"
+                
+
+        # Notification Settings for a User
+        notificationSettings:
+            description: repersents the state of notification settings
+            type: object
+            required:
+                - push
+                - text
+                - email
+            properties:
+                push:
+                    type: boolean
+                text:
+                    type: boolean
+                phone_number:
+                    type: string
+                email:
+                    type: boolean
+
+        # User account schema to be re-used throughout the API
+        account:
+            description: A single user account for the TigerChow application
+            type: object
+            required:
+                - id
+                - name
+
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                lastTimeActive:
+                    type: string
+                preferences:
+                    $ref: "#/components/schemas/userPreferences"
+                accountType:
+                    type: string
+                    enum: [Customer, Admin, Business, Driver]
+                status:
+                    type: integer
