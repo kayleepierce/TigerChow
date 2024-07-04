@@ -1,0 +1,142 @@
+openapi: "3.0.0"
+info:
+  version: "1.0.0"
+  title: "Orders Service API"
+  description: API to manage and track customer orders at TigerChow.
+
+servers:
+  - url: "https://www.tigerchow.com/api"
+
+paths:
+  /orders:
+    get:
+      summary: "Retrieve a list of orders with optional query parameters"
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+          description: "The ID of the customer to filter orders"
+        - in: query
+          name: restaurant_id
+          schema:
+            type: string
+          description: "The ID of the customer to filter orders"
+        # Add other query parameters as needed based on epics
+      responses:
+        "200":
+          description: "A list of orders matching the query"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      summary: "Place a new order"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewOrderRequest"
+      responses:
+        "201":
+          description: "Order created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{orderId}:
+    parameters:
+      - in: path
+        name: orderId
+        required: true
+        schema:
+          type: string
+        description: "The unique identifier of the order"
+    get:
+      summary: "Retrieve an order by its ID"
+      responses:
+        "200":
+          description: "Details of the specified order"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+    patch:
+      summary: "Update an existing order"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderUpdateRequest"
+      responses:
+        "200":
+          description: "Order updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        #add error codes 
+
+components:
+  schemas:
+    NewOrderRequest:
+      type: object
+      required:
+        - customer_id
+        - restaurant_id
+        - items
+      properties:
+        customer_id:
+          type: string
+        restaurant_id:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+
+    OrderUpdateRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        #can add other properties here
+
+    Order:
+      type: object
+      properties:
+        order_id:
+          type: string
+        customer_id:
+          type: string
+        restaurant_id:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        status:
+          type: string
+          enum: [placed, confirmed, preparing, ready, on_the_way, delivered]
+          description: "The current status of the order"
+
+    OrderItem:
+      type: object
+      required:
+        - item_id
+        - quantity
+        - status
+      properties:
+        item_id:
+          type: string
+        quantity:
+          type: integer
+
+#responses and parameters after the fact can go here
